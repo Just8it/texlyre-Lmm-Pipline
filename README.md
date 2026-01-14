@@ -1,6 +1,10 @@
-# TeXlyre
+# TeXlyre (Just8it Fork)
 
-A **[local-first](https://www.inkandswitch.com/essay/local-first/)** AI-enhanced [LaTeX](https://www.latex-project.org/) and [Typst](https://typst.app) editor with complete offline capabilities. Built with React and TypeScript, TeXlyre runs entirely in your browser—no server required.
+> [!IMPORTANT]
+> **This is a heavily modified fork of [TeXlyre](https://github.com/texlyre/texlyre).**
+> It is maintained by **Just8it** to focus strictly on **Single-User AI Productivity** and **Local-First Privacy**. Many original features (like WebRTC collaboration) have been removed to serve this specific vision.
+
+A **[local-first](https://www.inkandswitch.com/essay/local-first/)** AI-enhanced [LaTeX](https://www.latex-project.org/) and [Typst](https://typst.app) editor with complete offline capabilities. Built with React and TypeScript, this version runs entirely in your browser—no server required.
 
 [![GitHub Pages](https://img.shields.io/badge/🟢%20Live-GitHub%20Pages-181717.svg?logo=github)](https://texlyre.github.io/texlyre)
 [![Tests](https://img.shields.io/github/actions/workflow/status/texlyre/texlyre/test.yml?label=tests)](https://github.com/texlyre/texlyre/actions)
@@ -91,19 +95,22 @@ TeXlyre builds upon several key technologies:
 
 ### Core Technologies
 
-- **[SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)** - WASM-based LaTeX compilation engine
+* **[SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)** - WASM-based LaTeX compilation engine
+
 * **[typst.ts](https://github.com/Myriad-Dreamin/typst.ts)** - WASM-based Typst compilation engine
 * **[CodeMirror](https://codemirror.net/)** - Extensible code editor
 * **[Yjs](https://github.com/yjs/yjs)** - CRDTs for robust local data management
 
 ### Editor Extensions
 
-- **[codemirror-vim](https://github.com/replit/codemirror-vim)** - Vim keybindings for CodeMirror
+* **[codemirror-vim](https://github.com/replit/codemirror-vim)** - Vim keybindings for CodeMirror
+
 * **[codemirror-lang-typst](https://github.com/kxxt/codemirror-lang-typst)** - Typst language support for CodeMirror
 
 ### Runtime
 
-- **[WebPerl](https://github.com/haukex/webperl)** - Perl interpreter compiled to WebAssembly
+* **[WebPerl](https://github.com/haukex/webperl)** - Perl interpreter compiled to WebAssembly
+
 * **[wasm-bindgen](https://github.com/wasm-bindgen/wasm-bindgen)** - Rust/Wasm interoperability
 
 Development led by **Anthropic Claude** and **Google Gemini** agents.
