@@ -11,6 +11,7 @@ import type {
 	RendererPlugin,
 	ThemePlugin,
 	ViewerPlugin,
+	ToolPlugin,
 } from './PluginInterface';
 
 export const pluginSettings: Setting[] = [];
@@ -24,6 +25,7 @@ class PluginRegistryManager {
 		lsp: [],
 		backup: [],
 		themes: [],
+		tools: [],
 	};
 
 	constructor() {
@@ -98,6 +100,16 @@ class PluginRegistryManager {
 			if (plugins.themes && Object.keys(plugins.themes).length > 0) {
 				console.log('[PluginRegistry] Loading themes:', Object.keys(plugins.themes));
 				Object.values(plugins.themes).forEach((plugin: ThemePlugin) => {
+					this.registerPlugin(plugin);
+					if (plugin.settings && Array.isArray(plugin.settings)) {
+						pluginSettings.push(...plugin.settings);
+					}
+				});
+			}
+
+			if (plugins.tools && Object.keys(plugins.tools).length > 0) {
+				console.log('[PluginRegistry] Loading tools:', Object.keys(plugins.tools));
+				Object.values(plugins.tools).forEach((plugin: ToolPlugin) => {
 					this.registerPlugin(plugin);
 					if (plugin.settings && Array.isArray(plugin.settings)) {
 						pluginSettings.push(...plugin.settings);
@@ -183,6 +195,9 @@ class PluginRegistryManager {
 				break;
 			case 'theme':
 				this.registry.themes.push(plugin as ThemePlugin);
+				break;
+			case 'tool':
+				this.registry.tools.push(plugin as ToolPlugin);
 				break;
 			default:
 				console.warn(`Unsupported plugin type: ${plugin.type}`);
@@ -302,6 +317,10 @@ class PluginRegistryManager {
 
 	getThemeById(id: string): ThemePlugin | null {
 		return this.registry.themes.find((theme) => theme.id === id) || null;
+	}
+
+	getTools(): ToolPlugin[] {
+		return this.registry.tools;
 	}
 }
 

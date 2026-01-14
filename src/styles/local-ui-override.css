@@ -1,0 +1,31 @@
+/* Hide Login/Signup Buttons */
+.auth-controls,
+.login-button,
+.signup-button,
+a[href="/login"],
+a[href="/register"],
+button[data-testid="login-btn"],
+.nav-auth-section {
+    display: none !important;
+}
+
+/* Hide Cloud Sync Status indicators that might confuse user */
+.cloud-status,
+.sync-indicator {
+    display: none !important;
+}
+
+/* Hide Guest Session Banner */
+.guest-session-banner,
+.MuiAlert-standardWarning,
+/* Generic banner catch if specific class is missing */
+div[role="alert"] {
+    display: none !important;
+}
+
+/* Hide Upgrade Button specifically if it has other classes */
+button:contains('Upgrade Account'),
+/* Note: CSS doesn't support :contains, but we can try targeting known classes if we knew them. */
+button.upgrade-btn {
+    display: none !important;
+}

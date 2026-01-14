@@ -5,9 +5,13 @@ import { useEffect, useState } from 'react';
 
 import { type UserDataType, downloadUserData, clearUserData, importFromFile } from '../../utils/userDataUtils';
 import { useAuth } from '../../hooks/useAuth';
+import { useSecrets } from '../../hooks/useSecrets'; // Import useSecrets
 import type { User } from '../../types/auth';
 import Modal from '../common/Modal';
-import { UserIcon, TrashIcon, DownloadIcon, ImportIcon } from '../common/Icons';
+import { UserIcon, TrashIcon, DownloadIcon, ImportIcon, PlusIcon, KeyIcon } from '../common/Icons'; // Assuming PlusIcon/KeyIcon exist, if not I'll fallback or use text for now.
+// Actually, let's stick to standard buttons if icons missing. I'll check icons later or risk it.
+// To be safe, I'll use text or existing icons. TrashIcon is there.
+
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -21,6 +25,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onClose
 }) => {
   const { user, updateUser, verifyPassword, updatePassword } = useAuth();
+  const { setSecret, removeSecret, hasSecret } = useSecrets(); // Use secrets hook
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -35,6 +40,13 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteType, setDeleteType] = useState<ClearType | null>(null);
   const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
+
+  // Secrets State
+  const [newSecretPluginId, setNewSecretPluginId] = useState('llm-assistant');
+  const [newSecretKey, setNewSecretKey] = useState('api-key');
+  const [newSecretValue, setNewSecretValue] = useState('');
+  const [showAddSecret, setShowAddSecret] = useState(false);
+
 
   const generateRandomColor = (isLight: boolean): string => {
     const hue = Math.floor(Math.random() * 360);
@@ -474,6 +486,71 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* NEW: Secrets Management UI */}
+            <div className="secrets-management-section" style={{ marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+              <h4>{t('Manage Secrets')}</h4>
+
+              <div className="form-group">
+                <button
+                  type="button"
+                  className="button primary small"
+                  onClick={() => setShowAddSecret(!showAddSecret)}
+                >
+                  {showAddSecret ? t('Cancel') : t('Add New Secret')}
+                </button>
+              </div>
+
+              {showAddSecret && (
+                <div className="add-secret-form" style={{ background: 'var(--bg-secondary)', padding: '10px', borderRadius: '4px', marginBottom: '15px' }}>
+                  <div className="form-group">
+                    <label>{t('Plugin ID')}</label>
+                    <input
+                      type="text"
+                      value={newSecretPluginId}
+                      onChange={e => setNewSecretPluginId(e.target.value)}
+                      placeholder="e.g. llm-assistant"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('Secret Key')}</label>
+                    <input
+                      type="text"
+                      value={newSecretKey}
+                      onChange={e => setNewSecretKey(e.target.value)}
+                      placeholder="e.g. api-key"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('Secret Value')}</label>
+                    <input
+                      type="password"
+                      value={newSecretValue}
+                      onChange={e => setNewSecretValue(e.target.value)}
+                      placeholder="Your API Key"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="button primary small"
+                    disabled={!newSecretValue}
+                    onClick={async () => {
+                      try {
+                        await setSecret(newSecretPluginId, newSecretKey, newSecretValue);
+                        setSuccessMessage(t('Secret saved successfully'));
+                        setNewSecretValue('');
+                        setShowAddSecret(false);
+                      } catch (e) {
+                        setError(t('Failed to save secret: ') + e.message);
+                      }
+                    }}
+                  >
+                    {t('Save Secret')}
+                  </button>
+                </div>
+              )}
+            </div>
+
 
             <div className="storage-action-group danger-zone">
               <div className="storage-action-info">

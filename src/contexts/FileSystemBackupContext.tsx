@@ -52,6 +52,8 @@ interface FileSystemBackupContextType {
   changeDirectory: () => Promise<boolean>;
   dismissDiscovery: () => void;
   getRootHandle: () => FileSystemDirectoryHandle | null;
+  restoreHandle: () => Promise<boolean>;
+  verifyStoredHandlePermission: () => Promise<boolean>;
 }
 
 export const FileSystemBackupContext =
@@ -76,7 +78,9 @@ export const FileSystemBackupContext =
     clearAllActivities: () => { },
     changeDirectory: async () => false,
     dismissDiscovery: () => { },
-    getRootHandle: () => null
+    getRootHandle: () => null,
+    restoreHandle: async () => false,
+    verifyStoredHandlePermission: async () => false
   });
 
 interface FileSystemBackupProviderProps {
@@ -195,6 +199,22 @@ export const FileSystemBackupProvider: React.FC<
       return fileSystemBackupService.getRootHandle();
     }, []);
 
+    const restoreHandle = useCallback(async (): Promise<boolean> => {
+      const result = await fileSystemBackupService.restoreHandle();
+      if (result) {
+        setTempEnabled(true);
+      }
+      return result;
+    }, []);
+
+    const verifyStoredHandlePermission = useCallback(async (): Promise<boolean> => {
+      const result = await fileSystemBackupService.verifyStoredHandlePermission();
+      if (result) {
+        setTempEnabled(true);
+      }
+      return result;
+    }, []);
+
     useEffect(() => {
       const unsubscribeStatus = fileSystemBackupService.addStatusListener(
         (newStatus) => {
@@ -251,7 +271,13 @@ export const FileSystemBackupProvider: React.FC<
       if (initialBackupEnabled) {
         fileSystemBackupService.setEnabled(true);
       } else {
-        fileSystemBackupService.setEnabled(false);
+        // Only disable if NOT already connected+enabled (e.g. from auto-restore)
+        if (!fileSystemBackupService.getStatus().isEnabled) {
+          fileSystemBackupService.setEnabled(false);
+        } else {
+          // If service IS enabled, respect it and sync local state (so UI toggle matches)
+          setBackupEnabledSetting(true);
+        }
       }
 
       registerSetting({
@@ -312,7 +338,9 @@ export const FileSystemBackupProvider: React.FC<
         clearAllActivities,
         changeDirectory,
         dismissDiscovery,
-        getRootHandle
+        getRootHandle,
+        restoreHandle,
+        verifyStoredHandlePermission
       }),
       [
         status,

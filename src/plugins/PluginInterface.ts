@@ -174,6 +174,14 @@ export interface ThemeVariant {
 	isDark: boolean;
 }
 
+// Tools (Toolbar Actions)
+export interface ToolPlugin extends Plugin {
+	type: 'tool';
+	icon: React.ComponentType;
+	tooltip: string;
+	execute: (view: any) => void | Promise<void>; // Type 'any' for EditorView to avoid circular imports for now, or define a subset
+}
+
 // Registry that will hold all the plugins
 export type PluginRegistry = {
 	viewers: ViewerPlugin[];
@@ -183,4 +191,5 @@ export type PluginRegistry = {
 	lsp: LSPPlugin[];
 	backup: BackupPlugin[];
 	themes: ThemePlugin[];
+	tools: ToolPlugin[];
 };

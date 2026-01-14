@@ -19,6 +19,7 @@
 import '@picocss/pico/css/pico.min.css';
 
 import './styles/global.css';
+import './styles/local-ui-override.css';
 import './styles/components/editor.css';
 import './styles/components/editor-tabs.css';
 import './styles/components/codemirror.css';
@@ -55,6 +56,7 @@ import AppRouter from './components/app/AppRouter';
 import PasswordModal from './components/auth/PasswordModal';
 import SplashScreen from './components/common/SplashScreen';
 import FileConflictModal from './components/editor/FileConflictModal';
+import { LocalModePrompt } from './components/common/LocalModePrompt';
 import { AuthProvider } from './contexts/AuthContext';
 import { EditorProvider } from './contexts/EditorContext';
 import { FileSystemBackupProvider } from './contexts/FileSystemBackupContext';
@@ -148,6 +150,7 @@ function AppContent() {
 
 	return (
 		<>
+			<LocalModePrompt />
 			<AppRouter />
 			<FileConflictModal />
 			<PasswordModal

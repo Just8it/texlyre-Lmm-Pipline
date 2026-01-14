@@ -146,6 +146,38 @@ class AuthService {
 		}
 	}
 
+	async ensureLocalUser(): Promise<User> {
+		if (!this.db) await this.initialize();
+
+		const userId = 'local-user-persistent';
+		const existingUser = await this.getUserById(userId);
+
+		if (existingUser) {
+			this.currentUser = existingUser;
+			localStorage.setItem('texlyre-current-user', userId);
+			return existingUser;
+		}
+
+		console.log('[AuthService] Creating persistent local user...');
+		const now = Date.now();
+		const localUser: User = {
+			id: userId,
+			username: 'Local Admin',
+			passwordHash: await this.hashPassword('local'),
+			email: 'local@localhost',
+			createdAt: now,
+			lastLogin: now,
+			isGuest: false,
+			color: this.generateRandomColor(false),
+			colorLight: this.generateRandomColor(true),
+		};
+
+		await this.db?.put(this.USER_STORE, localUser);
+		this.currentUser = localUser;
+		localStorage.setItem('texlyre-current-user', userId);
+		return localUser;
+	}
+
 	async upgradeGuestAccount(
 		username: string,
 		password: string,
@@ -756,6 +788,16 @@ class AuthService {
 
 		await this.db?.put(this.PROJECT_STORE, updatedProject);
 		return updatedProject;
+	}
+
+	async getProjectByDocUrl(docUrl: string): Promise<Project | undefined> {
+		if (!this.db) await this.initialize();
+		if (!docUrl) return undefined;
+
+		// Since we don't have an index on docUrl, we scan (acceptable for local)
+		const allProjects = await this.getProjects();
+		// Check for exact match or "yjs:" prefix match if passed without it
+		return allProjects.find(p => p.docUrl === docUrl || p.docUrl === `yjs:${docUrl}`);
 	}
 }
 

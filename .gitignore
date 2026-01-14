@@ -15,6 +15,8 @@ coverage
 src/plugins/
 !src/plugins/PluginRegistry.ts
 !src/plugins/PluginInterface.ts
+!src/plugins/index.ts
+!src/plugins/tools/
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +28,14 @@ src/plugins/
 *.njsproj
 *.sln
 *.sw?
+
+# Security
+.env
+.env.*
+texlyre-userdata-*.json
+
+# Agent Artifacts
+implementation_plan.md
+texlyre_hacking_plan.md
+texlyre_deployment_modes.md
+Local Storage/

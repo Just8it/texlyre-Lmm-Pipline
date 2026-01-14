@@ -4,6 +4,9 @@ import type { ToolbarSplit, ToolbarSpace, ToolbarItem } from 'codemirror-toolbar
 import toolbar from 'codemirror-toolbar';
 import { type EditorView, ViewPlugin } from '@codemirror/view';
 import type { UndoManager } from 'yjs';
+import React, { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
+import { pluginRegistry } from '../../plugins/PluginRegistry';
 import * as CodeMirrorItems from './toolbar/codemirrorItems';
 import * as LaTeXItems from './toolbar/latexItems';
 import * as TypstItems from './toolbar/typstItems';
@@ -49,6 +52,16 @@ const getItems = (fileType: FileType, isFullScreen: boolean, inTable: boolean, i
 	const colorItems = inColor ? getColorScopeItems(fileType) : [];
 	const endItems = getCommonEndItems(isFullScreen, undoManager);
 
+	// Dynamic Tools from Registry
+	const tools = pluginRegistry.getTools().map(tool => ({
+		key: tool.id,
+		label: tool.tooltip || tool.name,
+		icon: renderToString(createElement(tool.icon)),
+		command: (view: EditorView) => { tool.execute(view); }
+	} as ToolbarItem));
+
+	const toolItems: ToolbarEntry[] = tools.length > 0 ? [split, ...tools] : [];
+
 	if (fileType === 'latex') {
 		return [
 			LaTeXItems.createBold(),
@@ -91,6 +104,7 @@ const getItems = (fileType: FileType, isFullScreen: boolean, inTable: boolean, i
 			LaTeXItems.createHighlight(),
 			...tableItems,
 			...colorItems,
+			...toolItems,
 			...endItems,
 		];
 	}
@@ -136,6 +150,7 @@ const getItems = (fileType: FileType, isFullScreen: boolean, inTable: boolean, i
 		TypstItems.createHighlight(),
 		...tableItems,
 		...colorItems,
+		...toolItems,
 		...endItems,
 	];
 };

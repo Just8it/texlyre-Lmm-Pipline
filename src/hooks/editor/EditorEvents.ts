@@ -10,8 +10,8 @@ interface EditorEventHandlerOptions {
     documentId?: string;
     enableComments: boolean;
     updateComments: (content: string) => void;
-    saveFileToStorage: (content: string) => void | Promise<void>;
-    saveDocumentToLinkedFile: (content: string) => void | Promise<void>;
+    saveFileToStorage: (content: string, triggerSync?: boolean) => void | Promise<void>;
+    saveDocumentToLinkedFile: (content: string, triggerSync?: boolean) => void | Promise<void>;
     setShowSaveIndicator: (value: boolean) => void;
 }
 
@@ -346,9 +346,9 @@ export const registerEditorEventHandlers = (
             customEvent.detail;
 
         if (isFile && eventFileId === currentFileId && isEditingFile) {
-            void saveFileToStorage(content);
+            void saveFileToStorage(content, true);
         } else if (!isFile && eventDocumentId === documentId && !isEditingFile) {
-            void saveDocumentToLinkedFile(content);
+            void saveDocumentToLinkedFile(content, true);
         }
     };
 

@@ -1012,7 +1012,11 @@ class FileStorageService {
 
 	async buildFileTree(): Promise<FileNode[]> {
 		const allFiles = await this.getAllFiles();
-		const files = allFiles.filter((file) => !file.isDeleted);
+		const files = allFiles.filter((file) =>
+			!file.isDeleted &&
+			!file.path.includes('/.texlyre') &&
+			!file.path.includes('/.git')
+		);
 
 		const tree: FileNode[] = [];
 		const pathMap: Record<string, FileNode> = {};

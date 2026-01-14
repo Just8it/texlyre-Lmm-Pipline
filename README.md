@@ -40,6 +40,10 @@ The platform integrates **[SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)
 
 The platform integrates **[typst.ts](https://github.com/Myriad-Dreamin/typst.ts)** to provide in-browser [Typst](https://github.com/typst/typst) compilation without server dependencies. Currently supports PDF, SVG, and canvas compilation, however, SVG and HTML compilation are experimental, and are not guaranteed to work as expected at the time being.  
 
+### AI Assistant (LLM Pipeline)
+
+**Experimental**: TeXlyre now includes a powerful **AI Assistant Plugin**. Configurable to work with **OpenRouter**, **Ollama**, or any OpenAI-compatible API, this tool directly streams AI-generated LaTeX or Typst code into your editor. It features a secure, encrypted secrets management system to keep your API keys safe within your browser's local storage.
+
 <p align="center">
 <img src="showcase/error_parser_zoomed_typst.png" alt="Typst compilation in progress" width="600">
 </p>
@@ -47,6 +51,8 @@ The platform integrates **[typst.ts](https://github.com/Myriad-Dreamin/typst.ts)
 ### Local-first Architecture
 
 TeXlyre prioritizes data ownership and offline capability. All documents are stored locally using **IndexedDB**, enabling full offline editing with automatic synchronization when connectivity returns. The File System Access API provides direct folder synchronization for external backup solutions, while project export and import features ensure complete data portability across devices and installations.
+
+**New in Experimental**: We have transitioned to a strict "Local-First" storage model. Server-side storage dependencies (like y-websocket persistence) have been removed in favor of direct browser-to-disk synchronization. Your data lives **only** on your device unless you explicitly choose to share it via P2P.
 
 ### File Management and Synchronization
 
@@ -56,10 +62,9 @@ The platform includes a file explorer supporting drag-and-drop operations for va
 
 ## Quick Start
 
+For detailed installation instructions, advanced configuration, and development workflows, see the [installation documentation](https://texlyre.github.io/docs/installation).
 
-For detailed installation instructions, advanced configuration, and development workflows, see the [installation documentation](https://texlyre.github.io/docs/installation). 
-
-For configuring TeXlyre's theme, properties, and supported plugins, see the [configuration documentation](https://texlyre.github.io/docs/configuration#configuration-files). 
+For configuring TeXlyre's theme, properties, and supported plugins, see the [configuration documentation](https://texlyre.github.io/docs/configuration#configuration-files).
 
 Installation requires Node.js 20+ and a modern browser with File System Access API support:
 
@@ -110,7 +115,7 @@ interface ViewerPlugin extends Plugin {
 
 Plugins can extend TeXlyre with custom file viewers, LaTeX/Typst log processors, backup providers, and theme variations (including a mobile theme). The plugin registry automatically discovers and loads compatible plugins during application initialization.
 
-Once a plugin is developed, it can be registered in the `plugins.config.ts` by simply adding its path (excluding the '/extras' prefix). All plugins must be placed in the 'extras' directory to be recognized by the system. 
+Once a plugin is developed, it can be registered in the `plugins.config.ts` by simply adding its path (excluding the '/extras' prefix). All plugins must be placed in the 'extras' directory to be recognized by the system.
 
 Configuration may be overriden by the `texlyre.config.ts` depending on your installation. **ALWAYS** set the plugin path as well in `texlyre.config.ts` for guaranteed persistence of the config (see the [configuration documentation](https://texlyre.github.io/docs/configuration#configuration-files))
 
@@ -125,6 +130,7 @@ WebRTC support is required for real-time collaboration, while the File System Ac
 TeXlyre is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 
 This means:
+
 - ✅ You can use, modify, and distribute this software
 - ✅ You can run it for any purpose, including commercial use
 - ⚖️ If you distribute modified versions, you must also distribute the source code
@@ -147,6 +153,7 @@ TeXlyre is privacy-focused by design:
 When you collaborate, IP addresses are temporarily processed through signaling servers to establish direct connections. No project content is transmitted through our servers.
 
 ### Repository Backup Integration
+
 The optional GitHub, GitLab, Gitea, and Forgejo (Codeberg) integration only activates when you explicitly enable them and provide your own token.
 
 ## Infrastructure
@@ -169,6 +176,7 @@ You can run your own signaling servers by following the setup instructions in ou
 TeXlyre builds upon several key technologies:
 
 ### Core Technologies
+
 - **[SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)** - WASM-based LaTeX compilation engine
 - **[typst.ts](https://github.com/Myriad-Dreamin/typst.ts)** - WASM-based Typst compilation engine
 - **[Yjs](https://github.com/yjs/yjs)** - Conflict-free collaborative editing with CRDTs
@@ -176,19 +184,23 @@ TeXlyre builds upon several key technologies:
 - **[FilePizza](https://github.com/kern/filepizza)** - Secure peer-to-peer file transfers
 
 ### Editor Extensions
+
 - **[codemirror-vim](https://github.com/replit/codemirror-vim)** - Vim keybindings for CodeMirror
 - **[codemirror-lang-typst](https://github.com/kxxt/codemirror-lang-typst)** - Typst language support for CodeMirror
 
 ### LaTeX Tools
+
 - **[tex-fmt](https://github.com/WGUNDERWOOD/tex-fmt)** - LaTeX code formatter
 - **[TeXcount](https://app.uio.no/ifi/texcount/)** - Word counter for LaTeX documents
 - **[BibTeX-Tidy](https://github.com/FlamingTempura/bibtex-tidy)** - BibTeX file cleaner and formatter
 
 ### Typst Tools
+
 - **[typstyle](https://github.com/typstyle-rs/typstyle)** - Typst code formatter
 - **[typst-wordometer](https://github.com/Jollywatt/typst-wordometer)** - Word counter for Typst documents
 
 ### Runtime
+
 - **[WebPerl](https://github.com/haukex/webperl)** - Perl interpreter compiled to WebAssembly
 - **[wasm-bindgen](https://github.com/wasm-bindgen/wasm-bindgen)** - Rust/Wasm interoperability
 
@@ -196,7 +208,7 @@ Development of TeXlyre was assisted by **Anthropic Claude** for debugging and ar
 
 ---
 
-**Ready to start collaborating?** 
-[Get started with TeXlyre](https://texlyre.github.io/texlyre/) 
-**or** 
+**Ready to start collaborating?**
+[Get started with TeXlyre](https://texlyre.github.io/texlyre/)
+**or**
 [contribute to the project with bug fixes, new features, plugins, and translations](CONTRIBUTING.md).

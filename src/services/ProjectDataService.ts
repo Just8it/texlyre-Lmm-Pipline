@@ -196,6 +196,10 @@ export class ProjectDataService {
 				allFiles = allFiles.filter((file) => !isTemporaryFile(file.path));
 			}
 
+			// Sort by lastModified ascending so that if there are duplicate paths,
+			// the newest one will overwrite previous ones in the map.
+			allFiles.sort((a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+
 			for (const file of allFiles) {
 				const fileMetadata = this.unifiedService.convertFileToMetadata(file);
 

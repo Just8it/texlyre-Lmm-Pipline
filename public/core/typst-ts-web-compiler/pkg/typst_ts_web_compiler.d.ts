@@ -41,6 +41,7 @@ export class TypstCompileWorld {
   get_artifact(fmt: number, diagnostics_format: number): any;
   query(kind: number, selector: string, field?: string | null): string;
   incr_compile(state: IncrServer, diagnostics_format: number): any;
+  set_pdf_opts(opts: any): void;
 }
 export class TypstCompiler {
   private constructor();
@@ -147,6 +148,7 @@ export interface InitOutput {
   readonly typstcompileworld_get_artifact: (a: number, b: number, c: number, d: number) => void;
   readonly typstcompileworld_query: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly typstcompileworld_incr_compile: (a: number, b: number, c: number, d: number) => void;
+  readonly typstcompileworld_set_pdf_opts: (a: number, b: number, c: number) => void;
   readonly __wbg_proxycontext_free: (a: number, b: number) => void;
   readonly proxycontext_new: (a: number) => number;
   readonly proxycontext_context: (a: number) => number;

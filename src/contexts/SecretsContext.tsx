@@ -113,6 +113,16 @@ export const SecretsProvider: React.FC<SecretsProviderProps> = ({
 		new Map(),
 	);
 
+	// Sync state to singleton service
+	useEffect(() => {
+		if (user) {
+			import('../services/SecretsService').then(({ secretsService }) => {
+				secretsService.syncState(user.id, userPassword, secretsCache);
+			});
+		}
+	}, [user, userPassword, secretsCache]);
+
+
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 	const [passwordModalMessage, setPasswordModalMessage] = useState('');
 	const [passwordResolve, setPasswordResolve] = useState<

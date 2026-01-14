@@ -98,13 +98,13 @@ const BackupModal: React.FC<BackupModalProps> = ({
   }, [currentProjectId, getProjectById, isInEditor]);
 
   const getStatusText = () => {
-    if (!status.isConnected) return t('No backup folder');
-    if (status.status === 'error') return t('Backup error');
+    if (!status.isConnected) return t('Select a folder');
+    if (status.status === 'error') return t('Storage error');
     if (status.status === 'syncing') return t('Syncing...');
     if (status.lastSync) {
-      return t('Last Sync: {date}', { date: formatDate(status.lastSync) });
+      return t('Last Saved: {date}', { date: formatDate(status.lastSync) });
     }
-    return t('Ready to sync');
+    return t('Ready to save');
   };
 
   const getActivityIcon = (type: string) => {
@@ -151,20 +151,20 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
     try {
       const loadingMessage = projectId ?
-        t('Exporting {projectName}...', { projectName: currentProjectName }) :
-        t('Exporting all projects...');
+        t('Saving {projectName} to PC...', { projectName: currentProjectName }) :
+        t('Saving all projects to PC...');
       notificationService.showLoading(loadingMessage, operationId);
 
       await onExportToFileSystem(projectId || undefined);
 
       const successMessage = projectId ?
-        t('{projectName} exported successfully', { projectName: currentProjectName }) :
-        t('All projects exported successfully');
+        t('{projectName} saved successfully', { projectName: currentProjectName }) :
+        t('All projects saved successfully');
       notificationService.showSuccess(successMessage, { operationId });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('Unknown error');
       notificationService.showError(
-        t('Backup export failed: {error}', { error: errorMessage }),
+        t('Save failed: {error}', { error: errorMessage }),
         { operationId }
       );
     } finally {
@@ -182,46 +182,20 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
     try {
       const loadingMessage = projectId ?
-        t('Importing changes for {projectName}...', { projectName: currentProjectName }) :
-        t('Importing all changes...');
+        t('Loading changes for {projectName}...', { projectName: currentProjectName }) :
+        t('Loading all changes from PC...');
       notificationService.showLoading(loadingMessage, operationId);
 
       await onImportChanges(projectId || undefined);
 
       const successMessage = projectId ?
-        t('Changes imported for {projectName}', { projectName: currentProjectName }) :
-        t('All changes imported successfully');
+        t('Changes loaded for {projectName}', { projectName: currentProjectName }) :
+        t('All changes loaded successfully');
       notificationService.showSuccess(successMessage, { operationId });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('Unknown error');
       notificationService.showError(
-        t('Backup import failed: {error}', { error: errorMessage }),
-        { operationId }
-      );
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  const handleRequestAccess = async () => {
-    if (isOperating) return;
-
-    setIsOperating(true);
-    const operationId = `backup-connect-${Date.now()}`;
-
-    try {
-      notificationService.showLoading(
-        t('Connecting to backup folder...'),
-        operationId
-      );
-      await onRequestAccess();
-      notificationService.showSuccess(t('Backup folder connected successfully'), {
-        operationId
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : t('Unknown error');
-      notificationService.showError(
-        t('Failed to connect backup folder: {error}', { error: errorMessage }),
+        t('Load failed: {error}', { error: errorMessage }),
         { operationId }
       );
     } finally {
@@ -237,17 +211,17 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
     try {
       notificationService.showLoading(
-        t('Changing backup directory...'),
+        t('Changing storage directory...'),
         operationId
       );
       await onChangeDirectory();
-      notificationService.showSuccess(t('Backup directory changed successfully'), {
+      notificationService.showSuccess(t('Storage directory changed successfully'), {
         operationId
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('Unknown error');
       notificationService.showError(
-        t('Failed to change backup directory: {error}', { error: errorMessage }),
+        t('Failed to change directory: {error}', { error: errorMessage }),
         { operationId }
       );
     } finally {
@@ -255,24 +229,12 @@ const BackupModal: React.FC<BackupModalProps> = ({
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleRequestAccess = async () => {
+    // Re-use logic for initial connection
     if (isOperating) return;
-
     setIsOperating(true);
-    const operationId = `backup-disconnect-${Date.now()}`;
-
     try {
-      notificationService.showLoading(t('Disconnecting backup...'), operationId);
-      await onDisconnect();
-      notificationService.showSuccess(t('Backup disconnected successfully'), {
-        operationId
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : t('Unknown error');
-      notificationService.showError(
-        t('Failed to disconnect backup: {error}', { error: errorMessage }),
-        { operationId }
-      );
+      await onRequestAccess();
     } finally {
       setIsOperating(false);
     }
@@ -283,15 +245,14 @@ const BackupModal: React.FC<BackupModalProps> = ({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title={t('File System Backup')}
+        title={t('Local Storage Settings')}
         icon={FileSystemIcon}
         size="medium"
         headerActions={
           <button
             className="modal-close-button"
             onClick={() => setShowSettings(true)}
-            title={t('File System Settings')}>
-
+            title={t('Settings')}>
             <SettingsIcon />
           </button>
         }>
@@ -302,17 +263,45 @@ const BackupModal: React.FC<BackupModalProps> = ({
               <div className="backup-controls">
                 {!status.isConnected ?
                   <>
-                    <button
-                      className="button primary"
-                      onClick={handleRequestAccess}
-                      disabled={isOperating}>
-
-                      <FolderIcon />
-                      {isOperating ? t('Connecting...') : t('Connect Folder')}
-                    </button>
+                    <div style={{ padding: '1rem', textAlign: 'center', width: '100%' }}>
+                      <p>{t('Local Storage is currently disconnected.')}</p>
+                      <button
+                        className="button primary"
+                        onClick={handleRequestAccess}
+                        disabled={isOperating}>
+                        <FolderIcon />
+                        {isOperating ? t('Connecting...') : t('Connect Local Storage')}
+                      </button>
+                    </div>
                   </> :
 
                   <>
+                    <div className="current-location" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.75rem',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 'var(--border-radius)',
+                      marginBottom: '1rem',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FolderIcon />
+                        <div>
+                          <strong style={{ display: 'block', fontSize: '0.9em' }}>{t('Storage Location')}</strong>
+                          <span style={{ color: 'var(--text-secondary)' }}>{t('Connected to Local Folder')}</span>
+                        </div>
+                      </div>
+                      <button
+                        className="button secondary small"
+                        onClick={handleChangeDirectory}
+                        disabled={isOperating}
+                        title={t('Change folder')}>
+                        {t('Change')}
+                      </button>
+                    </div>
+
                     {isInEditor &&
                       <div
                         className="sync-scope-selector"
@@ -323,9 +312,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
                             display: 'block',
                             marginBottom: '0.5rem',
                             fontWeight: 'bold'
-                          }}>{t('Backup Scope:')}
-
-
+                          }}>{t('Operation Scope:')}
                         </label>
                         <div style={{ display: 'flex', gap: '1rem' }}>
                           <label
@@ -347,7 +334,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
                               }
                               disabled={isOperating} />
 
-                            <span>{t('Current project (')}{currentProjectName})</span>
+                            <span>{t('Current project')}</span>
                           </label>
                           <label
                             style={{
@@ -374,40 +361,20 @@ const BackupModal: React.FC<BackupModalProps> = ({
                       </div>
                     }
                     <div className="backup-toolbar">
-                      <div className="primary-actions">
+                      <div className="primary-actions" style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                         <button
                           className="button secondary"
+                          style={{ flex: 1 }}
                           onClick={handleExport}
                           disabled={status.status === 'syncing' || isOperating}>
-
-                          <ExportIcon />{t('Export To PC')}
-
+                          <ExportIcon />{t('Save to Disk')}
                         </button>
                         <button
                           className="button secondary"
+                          style={{ flex: 1 }}
                           onClick={handleImport}
                           disabled={status.status === 'syncing' || isOperating}>
-
-                          <ImportIcon />{t('Import From PC')}
-
-                        </button>
-                      </div>
-                      <div className="secondary-actions">
-                        <button
-                          className="button secondary icon-only"
-                          onClick={handleChangeDirectory}
-                          disabled={isOperating}
-                          title={t('Change backup folder')}>
-
-                          <FolderIcon />
-                        </button>
-                        <button
-                          className="button secondary icon-only"
-                          onClick={handleDisconnect}
-                          disabled={isOperating}
-                          title={t('Disconnect')}>
-
-                          <DisconnectIcon />
+                          <ImportIcon />{t('Load from Disk')}
                         </button>
                       </div>
                     </div>
@@ -417,10 +384,6 @@ const BackupModal: React.FC<BackupModalProps> = ({
             </div>
 
             <div className="status-info">
-              <div className="status-item">
-                <strong>{t('File System Backup:')}</strong>{' '}
-                {status.isConnected ? t('Connected') : t('Disconnected')}
-              </div>
               {status.isConnected &&
                 <div className="status-item">
                   <strong>{t('Status: ')}</strong> {getStatusText()}
@@ -487,28 +450,15 @@ const BackupModal: React.FC<BackupModalProps> = ({
           }
 
           <div className="backup-info">
-            <h3>{t('How File System Backup Works')}</h3>
+            <h3>{t('How Local Storage Works')}</h3>
             <div className="info-content">
-              <p>{t('File system backup creates a copy of your local TeXlyre data on your PC that you can sync with cloud storage:')}
-
-
-              </p>
+              <p>{t('Local Storage saves all your projects directly to your computer.')}</p>
               <ul>
                 <li>
-                  <strong>{t('Export: ')}</strong>&nbsp;{t('Forces all local data to be written to the file system')}
-
+                  <strong>{t('Save to Disk: ')}</strong>&nbsp;{t('Writes all current project data to the selected folder')}
                 </li>
                 <li>
-                  <strong>{t('Import: ')}</strong>&nbsp;{t('Loads changes from the file system into your local workspace')}
-
-                </li>
-                <li>{t('Sync the backup folder with cloud services like Dropbox, Google Drive, or OneDrive for cross-device access')}
-
-
-                </li>
-                <li>{t('All project data is organized in a structured folder hierarchy with documents and files')}
-
-
+                  <strong>{t('Load from Disk: ')}</strong>&nbsp;{t('Reads potentially changed files from the folder back into TeXlyre')}
                 </li>
               </ul>
             </div>

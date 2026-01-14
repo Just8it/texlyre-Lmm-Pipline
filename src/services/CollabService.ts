@@ -35,7 +35,9 @@ class CollabService {
 	}
 
 	private isOfflineMode(): boolean {
-		return !offlineService.getStatus().isOnline;
+		// FORCE LOCAL MODE: Always return true to disable WebRTC/WebSocket servers
+		return true;
+		// return !offlineService.getStatus().isOnline;
 	}
 
 	private validateSignalingServers(signalingServers: string | string[]): string[] {

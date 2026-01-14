@@ -30,6 +30,7 @@ import {
 } from
   '../utils/fileUtils';
 import { batchExtractZip } from '../utils/zipUtils';
+import { authService } from '../services/AuthService';
 
 export const FileTreeContext = createContext<FileTreeContextType | null>(null);
 
@@ -105,11 +106,20 @@ export const FileTreeProvider: React.FC<FileTreeProviderProps> = ({
     });
   }, [registerSetting, getSetting]);
 
+
   useEffect(() => {
     if (!storageInitialized.current && docUrl) {
       const initFileStorage = async () => {
         try {
-          await fileStorageService.initialize(docUrl);
+          // Resolve the persistent project ID from the docUrl (Yjs Room ID)
+          // This ensures we connect to the correct database (e.g. 3890... instead of a827...)
+          const project = await authService.getProjectByDocUrl(docUrl);
+          const persistentProjectId = project ? project.id : docUrl; // Fallback if not found (shouldn't happen for saved projects)
+
+          const idToUse = project ? `yjs:${project.id}` : docUrl;
+          console.log(`[FileTreeContext] Initializing FileStorageService. Input Url: ${docUrl}, Resolved Project ID: ${project?.id}`);
+
+          await fileStorageService.initialize(idToUse);
           storageInitialized.current = true;
           const tree = await fileStorageService.buildFileTree();
           setFileTree(tree);

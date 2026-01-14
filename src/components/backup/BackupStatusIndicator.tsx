@@ -154,14 +154,14 @@ const BackupStatusIndicator: React.FC<BackupStatusIndicatorProps> = ({
               style={{ backgroundColor: getStatusColor() }} />
 
             <BackupIcon />
-            <span className="backup-label">{t('Backup')}</span>
+            <span className="backup-label">{t('Local Storage')}</span>
           </div>
 
           {backupPlugins.length > 0 &&
             <button
               className={`backup-dropdown-toggle ${mainStatus.connected ? 'connected' : 'disconnected'}`}
               onClick={toggleDropdown}
-              title={t('Backup Options')}>
+              title={t('Options')}>
 
               <ChevronDownIcon />
             </button>

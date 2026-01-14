@@ -17,6 +17,7 @@ import type { FileNode } from '../../types/files';
 import type { TypstOutputFormat } from '../../types/typst';
 import { isTypstFile, isTemporaryFile } from '../../utils/fileUtils';
 import { fileStorageService } from '../../services/FileStorageService';
+import { fileSystemBackupService } from '../../services/FileSystemBackupService';
 import { OptionsIcon, ChevronDownIcon, ClearCompileIcon, PlayIcon, StopIcon, TrashIcon, InfoIcon } from '../common/Icons';
 
 interface TypstCompileButtonProps {
@@ -312,6 +313,10 @@ const TypstCompileButton: React.FC<TypstCompileButtonProps> = ({
       const pdfOptions = effectiveFormat === 'pdf' ?
         shouldShareFormat ? doc?.projectMetadata?.typstPdfOptions : localPdfOptions :
         undefined;
+
+      // Trigger auto-sync before compilation
+      fileStorageService.getCurrentProjectId() &&
+        fileSystemBackupService.triggerSync(fileStorageService.getCurrentProjectId());
 
       await compileDocument(effectiveMainFile, effectiveFormat, pdfOptions);
     }

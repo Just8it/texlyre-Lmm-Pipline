@@ -15,6 +15,7 @@ import type { DocumentList } from '../../types/documents';
 import type { FileNode } from '../../types/files';
 import { isLatexFile, isTemporaryFile } from '../../utils/fileUtils';
 import { fileStorageService } from '../../services/FileStorageService';
+import { fileSystemBackupService } from '../../services/FileSystemBackupService';
 import { ChevronDownIcon, ClearCompileIcon, PlayIcon, StopIcon, TrashIcon } from '../common/Icons';
 
 interface LaTeXCompileButtonProps {
@@ -294,9 +295,14 @@ const LaTeXCompileButton: React.FC<LaTeXCompileButtonProps> = ({
         }
       }
 
-      await compileDocument(effectiveMainFile);
     }
-  };
+
+    // Trigger auto-sync before compilation
+    fileStorageService.getCurrentProjectId() &&
+      fileSystemBackupService.triggerSync(fileStorageService.getCurrentProjectId());
+
+    await compileDocument(effectiveMainFile);
+  }
 
   const handleClearCache = async () => {
     try {

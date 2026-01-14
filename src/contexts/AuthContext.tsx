@@ -81,7 +81,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 	useEffect(() => {
 		const initAuth = async () => {
 			await authService.initialize();
-			setUser(authService.getCurrentUser());
+			let currentUser = authService.getCurrentUser();
+
+			// AUTO-LOGIN / FORCE LOCAL ADMIN
+			// If we are not logged in, OR if we are logged in as a random guest/user that isn't our persistent one,
+			// we force a switch to the persistent local admin.
+			const persistentId = 'local-user-persistent';
+
+			if (!currentUser || currentUser.id !== persistentId) {
+				console.log("Local Mode: Enforcing Persistent Local User...");
+				try {
+					// Create/Get the persistent user
+					const localUser = await authService.ensureLocalUser();
+
+					// If we were logged in as someone else, explicitly switch to the new user
+					if (currentUser && currentUser.id !== localUser.id) {
+						console.log("Switching from previous session to Local Admin");
+						// Note: We don't necessarily logout the old one, just overwrite the session for this view
+					}
+
+					currentUser = localUser;
+				} catch (e) {
+					console.error("Auto-login failed:", e);
+				}
+			}
+
+			setUser(currentUser);
 			setIsInitializing(false);
 		};
 

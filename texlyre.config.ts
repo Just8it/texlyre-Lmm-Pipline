@@ -41,6 +41,7 @@ const config: TexlyreConfig = {
         lsp: [],
         backup: ['github', 'gitlab', 'forgejo', 'gitea'],
         themes: ['texlyre_slim', 'texlyre_wide', 'texlyre_mobile'],
+        tools: ['llm_assistant'],
     },
 
     // overwrite priority is default < local < mobile for corresponding configs

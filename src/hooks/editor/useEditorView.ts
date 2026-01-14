@@ -65,7 +65,9 @@ import { useEditor } from '../useEditor';
 import { autoSaveManager } from '../../utils/autoSaveUtils';
 import { detectFileType, isBibFile } from '../../utils/fileUtils.ts';
 import { collabService } from '../../services/CollabService';
+import { authService } from '../../services/AuthService';
 import { fileStorageService } from '../../services/FileStorageService';
+import { fileSystemBackupService } from '../../services/FileSystemBackupService';
 import { filePathCacheService } from '../../services/FilePathCacheService';
 
 import { registerYjsBinding } from './yjsBinding';
@@ -134,7 +136,7 @@ export const useEditorView = (
         };
     }, []);
 
-    const saveFileToStorage = async (content: string) => {
+    const saveFileToStorage = async (content: string, triggerSync: boolean = false) => {
         if (!currentFileId || !isEditingFile) return;
         try {
             const encoder = new TextEncoder();
@@ -156,12 +158,41 @@ export const useEditorView = (
                     },
                 }),
             );
+
+            if (triggerSync) {
+                let projectId = fileStorageService.getCurrentProjectId();
+
+                // fallback if service has no ID but we have docUrl
+                if (!projectId && docUrl) {
+                    // Try to resolve real project ID from AuthService
+                    try {
+                        const cleanDocUrl = docUrl.startsWith('yjs:') ? docUrl : `yjs:${docUrl}`;
+                        const project = await authService.getProjectByDocUrl(cleanDocUrl);
+                        if (project) {
+                            projectId = project.id;
+                        } else {
+                            // Last resort: assume docUrl SUFFIX is the ID (legacy/guest behavior)
+                            projectId = docUrl.startsWith('yjs:') ? docUrl.slice(4) : docUrl;
+                        }
+                    } catch (e) {
+                        console.warn('[useEditorView] Failed to resolve project ID from AuthService', e);
+                        projectId = docUrl.startsWith('yjs:') ? docUrl.slice(4) : docUrl;
+                    }
+                }
+
+                console.log(`[useEditorView] Auto-sync triggered. ProjectId: ${projectId}`);
+                if (projectId) {
+                    fileSystemBackupService.triggerSync(projectId);
+                } else {
+                    console.warn('[useEditorView] Skipped auto-sync: No Project ID');
+                }
+            }
         } catch (error) {
             console.error('Error saving file:', error);
         }
     };
 
-    const saveDocumentToLinkedFile = async (content: string) => {
+    const saveDocumentToLinkedFile = async (content: string, triggerSync: boolean = false) => {
         if (!documentId || isEditingFile) return;
         try {
             const allFiles = await fileStorageService.getAllFiles(false);
@@ -186,6 +217,20 @@ export const useEditorView = (
                         },
                     }),
                 );
+
+                if (triggerSync) {
+                    let projectId = fileStorageService.getCurrentProjectId();
+
+                    // fallback if service has no ID but we have docUrl
+                    if (!projectId && docUrl) {
+                        projectId = docUrl.startsWith('yjs:') ? docUrl.slice(4) : docUrl;
+                        console.log(`[useEditorView] Recovered ProjectID from URL: ${projectId}`);
+                    }
+
+                    if (projectId) {
+                        fileSystemBackupService.triggerSync(projectId);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error saving document to linked file:', error);
@@ -610,9 +655,9 @@ export const useEditorView = (
 
                     const content = view.state.doc.toString();
                     if (isEditingFile && currentFileId) {
-                        void saveFileToStorage(content);
+                        void saveFileToStorage(content, true);
                     } else if (!isEditingFile && documentId) {
-                        void saveDocumentToLinkedFile(content);
+                        void saveDocumentToLinkedFile(content, true);
                     }
                     return true;
                 },

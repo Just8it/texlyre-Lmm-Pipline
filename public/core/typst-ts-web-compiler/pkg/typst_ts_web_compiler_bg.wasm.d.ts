@@ -46,6 +46,7 @@ export const typstcompileworld_title: (a: number, b: number, c: number) => void;
 export const typstcompileworld_get_artifact: (a: number, b: number, c: number, d: number) => void;
 export const typstcompileworld_query: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const typstcompileworld_incr_compile: (a: number, b: number, c: number, d: number) => void;
+export const typstcompileworld_set_pdf_opts: (a: number, b: number, c: number) => void;
 export const __wbg_proxycontext_free: (a: number, b: number) => void;
 export const proxycontext_new: (a: number) => number;
 export const proxycontext_context: (a: number) => number;

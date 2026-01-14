@@ -1,5 +1,6 @@
 // src/services/FileSystemBackupService.ts
 import { t } from '@/i18n';
+import { openDB } from 'idb';
 import type {
 	BackupActivity,
 	BackupDiscoveryResult,
@@ -95,8 +96,13 @@ class FileSystemBackupService {
 				id: 'texlyre-backup',
 			});
 
+			// Persist the handle
+			await this.saveHandle(this.rootHandle!);
+
+			this.isEnabled = true;
 			this.updateStatus({
 				isConnected: true,
+				isEnabled: true,
 				status: 'idle',
 				error: undefined,
 			});
@@ -108,6 +114,63 @@ class FileSystemBackupService {
 		}
 	}
 
+	// New methods for handle persistence
+	private async saveHandle(handle: FileSystemDirectoryHandle): Promise<void> {
+		const db = await openDB('texlyre-config', 1, {
+			upgrade(db) {
+				db.createObjectStore('config');
+			},
+		});
+		await db.put('config', handle, 'backup-handle');
+	}
+
+	async restoreHandle(): Promise<boolean> {
+		try {
+			const db = await openDB('texlyre-config', 1, {
+				upgrade(db) {
+					db.createObjectStore('config');
+				},
+			});
+			const handle = await db.get('config', 'backup-handle') as FileSystemDirectoryHandle;
+
+			if (handle) {
+				// Verify permission
+				const permission = await handle.queryPermission({ mode: 'readwrite' });
+				if (permission === 'granted') {
+					this.rootHandle = handle;
+					this.isEnabled = true; // Auto-enable if restored
+					this.updateStatus({ isConnected: true, isEnabled: true, status: 'idle' });
+					this.performDiscoveryScan();
+					return true;
+				} else {
+					// If permission is prompted, we might return the handle but note it needs verification
+					// For now, simpler to just treat as failure and let user re-click, 
+					// BUT we can actually request it here if we are inside a user gesture context.
+					// The LocalModePrompt might need to call this specifically.
+					this.rootHandle = handle; // Store it anyway so prompt can use it
+					return false; // Return false to indicate "not fully ready" (needs permission)
+				}
+			}
+			return false;
+		} catch (e) {
+			console.error("Failed to restore handle:", e);
+			return false;
+		}
+	}
+
+	// Helper to request permission for the RESTORED handle
+	async verifyStoredHandlePermission(): Promise<boolean> {
+		if (!this.rootHandle) return false;
+		const permission = await this.rootHandle.requestPermission({ mode: 'readwrite' });
+		if (permission === 'granted') {
+			this.isEnabled = true;
+			this.updateStatus({ isConnected: true, isEnabled: true, status: 'idle' });
+			this.performDiscoveryScan();
+			return true;
+		}
+		return false;
+	}
+
 	async changeDirectory(): Promise<boolean> {
 		try {
 			this.rootHandle = await (window as any).showDirectoryPicker({
@@ -115,8 +178,10 @@ class FileSystemBackupService {
 				id: 'texlyre-backup-new',
 			});
 
+			this.isEnabled = true;
 			this.updateStatus({
 				isConnected: true,
+				isEnabled: true,
 				status: 'idle',
 				error: undefined,
 			});
@@ -186,6 +251,18 @@ class FileSystemBackupService {
 
 	async synchronize(projectId?: string): Promise<void> {
 		await this.exportToFileSystem(projectId);
+	}
+
+	async triggerSync(projectId?: string): Promise<void> {
+		// Trigger synchronization logic
+		if (!this.canSync()) return;
+		console.log(`[FileSystemBackupService] triggerSync called for project: ${projectId}`);
+
+		try {
+			await this.exportToFileSystem(projectId);
+		} catch (error) {
+			console.error('[FileSystemBackupService] Auto-sync CRITICAL FAILURE:', error);
+		}
 	}
 
 	async importChanges(projectId?: string): Promise<void> {
